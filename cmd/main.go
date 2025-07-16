@@ -111,7 +111,7 @@ aws: error: too few arguments
 			continue
 		}
 
-		subCommand := args[1]
+		//subCommand := args[1]
 		action := args[2]
 
 		if command == "ec2" && action == "create" {
