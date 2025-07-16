@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"aws-cli-simulator/cmd/ec2"
+	"aws-cli-simulator/cmd/vpc"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 	availableCommands := []string{
 		"acm", "acm-pca", "alexaforbusiness", "amplify",
 		"apigateway", "apigatewaymanagementapi", "apigatewayv2",
-		"appconfig", "appflow", "ec2", // Adicione outros serviços aqui
+		"appconfig", "appflow", "ec2", "vpc", // Adicione outros serviços aqui
 	}
 
 	reader := bufio.NewReader(os.Stdin)
@@ -80,6 +81,7 @@ Available services:
   apigateway                 | apigatewaymanagementapi
   apigatewayv2               | appconfig
   appflow                    | ec2
+  vpc
   (lista continua com todos os serviços disponíveis)
 
 aws: error: argument command: Invalid choice: '%s' (choose from '%s')
@@ -87,37 +89,45 @@ aws: error: argument command: Invalid choice: '%s' (choose from '%s')
 			continue
 		}
 
-		// Caso "aws ec2" seja digitado sem subcomando
-		if len(args) == 2 && command == "ec2" {
-			fmt.Println(`usage: aws ec2 <command> [<args>]
+		// Caso "aws ec2" ou "aws vpc" seja digitado sem subcomando
+		if len(args) == 2 && (command == "ec2" || command == "vpc") {
+			fmt.Printf(`usage: aws %s <command> [<args>]
 
-The AWS EC2 service provides APIs for managing EC2 resources.
+The AWS %s service provides APIs for managing %s resources.
 
 To see help text, you can run:
 
-  aws ec2 help
-  aws ec2 <command> help
+  aws %s help
+  aws %s <command> help
 
-aws: error: too few arguments`)
+aws: error: too few arguments
+`, command, strings.ToUpper(command), command, command, command)
 			continue
 		}
 
-		// Caso "aws ec2 create" seja digitado sem argumentos adicionais
+		// Caso "aws ec2 create" ou "aws vpc create" seja digitado sem argumentos adicionais
 		if len(args) < 3 {
-			fmt.Println("Usage: aws ec2 create <instance-type>")
+			fmt.Printf("Usage: aws %s create <name-or-type>\n", command)
 			continue
 		}
 
 		subCommand := args[1]
 		action := args[2]
 
-		if command == "aws" && subCommand == "ec2" && action == "create" {
+		if command == "ec2" && action == "create" {
 			if len(args) < 4 {
 				fmt.Println("Usage: aws ec2 create <instance-type>")
 				continue
 			}
 			instanceType := args[3]
 			ec2.CreateInstance(instanceType)
+		} else if command == "vpc" && action == "create" {
+			if len(args) < 4 {
+				fmt.Println("Usage: aws vpc create <vpc-name>")
+				continue
+			}
+			vpcName := args[3]
+			vpc.CreateVpc(vpcName)
 		} else {
 			fmt.Println("Unknown command")
 		}
